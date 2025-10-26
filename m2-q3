@@ -1,0 +1,43 @@
+def solution(centerCapacities, dailyLog):
+    n = len(centerCapacities)
+    capacities = centerCapacities.copy()
+    packages_processed = [0] * n
+    closed = [False] * n
+    current = 0
+    
+    for entry in dailyLog:
+        if entry == "PACKAGE":
+            # Find next available center
+            for _ in range(n):
+                if not closed[current] and capacities[current] > 0:
+                    # Process package
+                    capacities[current] -= 1
+                    packages_processed[current] += 1
+                    
+                    # Move to next if capacity exhausted
+                    if capacities[current] == 0:
+                        current = (current + 1) % n
+                        # Restore capacities if full rotation completed
+                        if all(capacities[i] == 0 or closed[i] for i in range(n)):
+                            capacities = [centerCapacities[i] if not closed[i] else 0 
+                                        for i in range(n)]
+                    break
+                current = (current + 1) % n
+        
+        else:  # "CLOSURE j"
+            center_num = int(entry.split()[1])
+            closed[center_num] = True
+    
+    # Return highest index with max packages
+    max_packages = max(packages_processed)
+    for i in range(n - 1, -1, -1):
+        if packages_processed[i] == max_packages:
+            return i
+
+
+# Test
+centerCapacities = [1, 2, 1, 2, 1]
+dailyLog = ["PACKAGE", "PACKAGE", "CLOSURE 2", "PACKAGE", 
+            "CLOSURE 3", "PACKAGE", "PACKAGE"]
+
+print(solution(centerCapacities, dailyLog))  # Output: 1
